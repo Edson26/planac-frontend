@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { getPlanificaciones, getMiResumen } from "../services/api"; import type { Planificacion, ResumenDocente } from "../types";
+import { getPlanificaciones, getMiResumen, getOtrasActividades  } from "../services/api";
+import type { OtraActividad, Planificacion, ResumenDocente } from "../types";
 import { TrendingUp, TrendingDown, Minus, BookOpen, Clock } from "lucide-react";
 
 export default function Dashboard() {
   const { usuario } = useAuth();
   const [planificacion, setPlanificacion] = useState<Planificacion | null>(null);
   const [resumen, setResumen] = useState<ResumenDocente | null>(null);
+  const [otrasActividades, setOtrasActividades] = useState<OtraActividad[]>([]);
 
   useEffect(() => {
     getPlanificaciones().then(({ data }) => {
@@ -14,6 +16,9 @@ export default function Dashboard() {
       if (activa) {
         setPlanificacion(activa);
         getMiResumen(activa.id).then(({ data: r }) => setResumen(r));
+        getOtrasActividades(activa.id).then(({ data }) =>
+          setOtrasActividades(data)
+        );
       }
     });
   }, []);
@@ -30,7 +35,7 @@ export default function Dashboard() {
     <div>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
-          Bienvenido, {usuario?.first_name} {usuario?.last_name}
+          Bienvenido {usuario?.first_name} {usuario?.last_name}
         </h2>
         <p className="text-gray-500">
           {planificacion
@@ -74,11 +79,11 @@ export default function Dashboard() {
           )}
 
           {/* Desglose por asignatura */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="font-semibold text-gray-700 mb-4">Desglose por Asignatura</h3>
-            <div className="space-y-3">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 overflow-hidden">
+            <h3 className="bg-gray-700 text-white p-6 px-6 py-3">Desglose por Asignatura</h3>
+            <div className="space-y-3 p-3">
               {Object.entries(resumen.por_asignatura).map(([codigo, data]) => (
-                <div key={codigo} className="flex justify-between items-center py-3 border-b border-gray-50">
+                <div key={codigo} className="flex justify-between items-center gap-4 p-3 bg-gray-50 rounded-lg">
                   <div>
                     <span className="text-xs font-mono bg-blue-100 text-blue-700 px-2 py-0.5 rounded mr-2">{codigo}</span>
                     <span className="text-sm text-gray-700">{data.asignatura}</span>
@@ -90,6 +95,27 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
+
+          {/* Otras Actividades */}
+
+          {otrasActividades.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <h3 className="bg-gray-700 text-white px-6 py-3">Otras Actividades</h3>
+              <div className="space-y-3 p-3">
+                {otrasActividades.map((actividad) => (
+                  <div
+                    key={actividad.id}
+                    className="flex justify-between items-center gap-4 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <span className="text-sm text-gray-700">{actividad.descripcion}</span>
+                    <span className="font-semibold text-gray-800">
+                      {Number(actividad.horas).toFixed(2)} hrs
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

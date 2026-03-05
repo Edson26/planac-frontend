@@ -70,6 +70,7 @@ export interface ResumenDocente {
     horas_indirectas: number;
     modulos: Array<{ modulo: string; cantidad: number; unidad: string; horas_total: number; observaciones: string }>;
   }>;
+  OtraActividad: Record<string, { nombre: string; horas: number; }>;
   total_horas_directas: number;
   total_horas_indirectas: number;
   total_pregrado: number;
